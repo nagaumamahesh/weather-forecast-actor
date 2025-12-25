@@ -31,7 +31,7 @@ Built for the [Apify $1M Challenge](https://apify.com/challenge) 🏆
 | `latitude` | number | ✅ Yes | GPS latitude (-90 to 90) |
 | `longitude` | number | ✅ Yes | GPS longitude (-180 to 180) |
 | `units` | string | No | `"metric"` (Celsius) or `"imperial"` (Fahrenheit). Default: `"metric"` |
-| `apiKey` | string | No* | OpenWeatherMap API key ([Get free key](https://openweathermap.org/api)). *Can use `OPENWEATHER_API_KEY` env variable instead |
+| `apiKey` | string | ✅ Yes | OpenWeatherMap API key ([Get free key](https://openweathermap.org/api)) |
 
 ### Example Input
 
@@ -162,17 +162,7 @@ npx apify run
 cat storage/datasets/default/000000001.json
 ```
 
-**Alternative: Use Environment Variable**
-```bash
-# Set API key as environment variable (no need to put it in INPUT.json)
-export OPENWEATHER_API_KEY="your_api_key_here"  # Linux/Mac
-$env:OPENWEATHER_API_KEY="your_api_key_here"    # Windows PowerShell
-
-# Then run without apiKey in input
-npx apify run
-```
-
-**Advantages:** Fast iteration, easy debugging, secure API key storage
+**Advantages:** Fast iteration, easy debugging, no internet required for code changes
 
 ---
 
@@ -187,20 +177,14 @@ cd weather-forecast-actor
 # 3. Build Docker image
 docker build -t weather-forecast-actor .
 
-# 4a. Run with API key in INPUT.json
+# 4. Run the container
 docker run --rm -v ${PWD}/storage:/actor/storage weather-forecast-actor
-
-# 4b. Run with API key from environment variable
-docker run --rm \
-  -e OPENWEATHER_API_KEY="your_api_key_here" \
-  -v ${PWD}/storage:/actor/storage \
-  weather-forecast-actor
 
 # 5. View output
 cat storage/datasets/default/000000001.json
 ```
 
-**Advantages:** Exact production environment, isolated dependencies, reproducible builds, secure secrets
+**Advantages:** Exact production environment, isolated dependencies, reproducible builds
 
 ---
 
@@ -395,26 +379,15 @@ apify push
 docker build -t weather-forecast-actor .
 ```
 
-### Run with API key in INPUT.json:
+### Run the container:
 ```bash
 docker run --rm -v ${PWD}/storage:/actor/storage weather-forecast-actor
 ```
 
-### Run with API key from environment variable:
+### Run with custom input:
 ```bash
+# Create input file first, then:
 docker run --rm \
-  -e OPENWEATHER_API_KEY="your_api_key_here" \
-  -v ${PWD}/storage:/actor/storage \
-  weather-forecast-actor
-```
-
-### Run with .env file:
-```bash
-# Create .env file with:
-# OPENWEATHER_API_KEY=your_key_here
-
-docker run --rm \
-  --env-file .env \
   -v ${PWD}/storage:/actor/storage \
   weather-forecast-actor
 ```
@@ -422,7 +395,6 @@ docker run --rm \
 ### Debug inside container:
 ```bash
 docker run -it --rm \
-  -e OPENWEATHER_API_KEY="your_api_key" \
   -v ${PWD}/storage:/actor/storage \
   --entrypoint /bin/bash \
   weather-forecast-actor

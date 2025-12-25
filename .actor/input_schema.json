@@ -33,12 +33,12 @@
       "enumTitles": ["Metric (°C, m/s, mm)", "Imperial (°F, mph, in)"]
     },
     "apiKey": {
-      "title": "OpenWeatherMap API Key (Optional)",
+      "title": "OpenWeatherMap API Key",
       "type": "string",
-      "description": "Your OpenWeatherMap API key. If not provided, will use OPENWEATHER_API_KEY environment variable. Get a FREE key at https://openweathermap.org/api (allows 1M calls/month). New keys may take 10-15 minutes to activate.",
+      "description": "Your OpenWeatherMap API key. Get a FREE key at https://openweathermap.org/api (allows 1M calls/month). New keys may take 10-15 minutes to activate.",
       "editor": "textfield",
       "isSecret": true
     }
   },
-  "required": ["latitude", "longitude"]
+  "required": ["latitude", "longitude", "apiKey"]
 }
