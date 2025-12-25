@@ -31,7 +31,7 @@ Built for the [Apify $1M Challenge](https://apify.com/challenge) 🏆
 | `latitude` | number | ✅ Yes | GPS latitude (-90 to 90) |
 | `longitude` | number | ✅ Yes | GPS longitude (-180 to 180) |
 | `units` | string | No | `"metric"` (Celsius) or `"imperial"` (Fahrenheit). Default: `"metric"` |
-| `apiKey` | string | ✅ Yes | OpenWeatherMap API key ([Get free key](https://openweathermap.org/api)) |
+| `apiKey` | string | No* | OpenWeatherMap API key ([Get free key](https://openweathermap.org/api)). *Can use `OPENWEATHER_API_KEY` env variable instead |
 
 ### Example Input
 
@@ -96,32 +96,147 @@ Built for the [Apify $1M Challenge](https://apify.com/challenge) 🏆
 
 ---
 
+## 🚀 Getting Started
+
+### Prerequisites
+
+1. **Get a FREE API Key** from [OpenWeatherMap](https://openweathermap.org/api)
+   - Sign up for a free account
+   - Navigate to API Keys section
+   - Copy your API key
+   - **Wait 10-15 minutes** for activation
+
+2. **Choose your method:**
+   - Option A: Run on Apify Platform (easiest)
+   - Option B: Run locally with Node.js
+   - Option C: Run with Docker
+
+---
+
 ## 📦 Installation & Usage
 
-### Running on Apify Platform
+### Option A: Running on Apify Platform (Recommended)
 
-1. Navigate to [Apify Console](https://console.apify.com)
-2. Create a new Actor or use this one
-3. Provide input parameters
-4. Run and collect results from the dataset
+1. Visit [Apify Console](https://console.apify.com)
+2. Create a new Actor or search for "Weather Forecast GPS"
+3. Provide your input:
+   ```json
+   {
+     "latitude": 40.7128,
+     "longitude": -74.0060,
+     "units": "metric",
+     "apiKey": "your_api_key_here"
+   }
+   ```
+4. Click "Start" and collect results from the dataset
 
-### Running Locally
+**Advantages:** No setup, runs in cloud, always available
+
+---
+
+### Option B: Running Locally with Node.js
 
 ```bash
-# Clone or download this repository
+# 1. Clone or download this repository
 cd weather-forecast-actor
 
-# Install dependencies
+# 2. Install dependencies
 npm install
 
-# Build the project
+# 3. Build the project
 npm run build
 
-# Run with Apify CLI
+# 4. Create input file
+# Create storage/key_value_stores/default/INPUT.json with:
+{
+  "latitude": 40.7128,
+  "longitude": -74.0060,
+  "units": "metric",
+  "apiKey": "your_openweathermap_api_key"
+}
+
+# 5. Run with Apify CLI
+npx apify run
+
+# 6. View output
+cat storage/datasets/default/000000001.json
+```
+
+**Alternative: Use Environment Variable**
+```bash
+# Set API key as environment variable (no need to put it in INPUT.json)
+export OPENWEATHER_API_KEY="your_api_key_here"  # Linux/Mac
+$env:OPENWEATHER_API_KEY="your_api_key_here"    # Windows PowerShell
+
+# Then run without apiKey in input
 npx apify run
 ```
 
-**Note:** Create `storage/key_value_stores/default/INPUT.json` with your input data.
+**Advantages:** Fast iteration, easy debugging, secure API key storage
+
+---
+
+### Option C: Running with Docker
+
+```bash
+# 1. Start Docker Desktop application
+
+# 2. Navigate to project directory
+cd weather-forecast-actor
+
+# 3. Build Docker image
+docker build -t weather-forecast-actor .
+
+# 4a. Run with API key in INPUT.json
+docker run --rm -v ${PWD}/storage:/actor/storage weather-forecast-actor
+
+# 4b. Run with API key from environment variable
+docker run --rm \
+  -e OPENWEATHER_API_KEY="your_api_key_here" \
+  -v ${PWD}/storage:/actor/storage \
+  weather-forecast-actor
+
+# 5. View output
+cat storage/datasets/default/000000001.json
+```
+
+**Advantages:** Exact production environment, isolated dependencies, reproducible builds, secure secrets
+
+---
+
+### Quick Test (Any Method)
+
+After running, you should see:
+
+```
+✅ Success! Retrieved 6-day forecast for New York
+```
+
+And your output file will contain rich weather data like:
+
+```json
+{
+  "location": {
+    "city": "New York",
+    "country": "US"
+  },
+  "daily_forecast": [
+    {
+      "date": "2025-12-25",
+      "temperature": {
+        "min": 2,
+        "max": 6,
+        "average": 4.2,
+        "unit": "°C"
+      },
+      "weather": {
+        "main": "Clouds",
+        "description": "overcast clouds"
+      }
+    }
+  ]
+}
+```
 
 ---
 
@@ -227,12 +342,14 @@ This Actor uses the OpenWeatherMap API:
 ```
 weather-forecast-actor/
 ├── src/
-│   └── main.ts              # Main Actor logic
+│   └── main.ts              # Main Actor logic (430 lines)
 ├── .actor/
 │   ├── actor.json           # Actor metadata
 │   ├── input_schema.json    # Input validation
 │   └── INPUT.json           # Local input (git-ignored)
 ├── storage/                 # Local storage (git-ignored)
+│   ├── datasets/            # Output data
+│   └── key_value_stores/    # Input data
 ├── dist/                    # Compiled JavaScript
 ├── package.json
 ├── tsconfig.json
@@ -260,8 +377,65 @@ npm run rebuild
 # Test locally
 npx apify run
 
+# Test with Docker
+docker build -t weather-forecast-actor .
+docker run --rm -v ${PWD}/storage:/actor/storage weather-forecast-actor
+
 # Deploy to Apify
+apify login
 apify push
+```
+
+---
+
+## 🐳 Docker Commands
+
+### Build the image:
+```bash
+docker build -t weather-forecast-actor .
+```
+
+### Run with API key in INPUT.json:
+```bash
+docker run --rm -v ${PWD}/storage:/actor/storage weather-forecast-actor
+```
+
+### Run with API key from environment variable:
+```bash
+docker run --rm \
+  -e OPENWEATHER_API_KEY="your_api_key_here" \
+  -v ${PWD}/storage:/actor/storage \
+  weather-forecast-actor
+```
+
+### Run with .env file:
+```bash
+# Create .env file with:
+# OPENWEATHER_API_KEY=your_key_here
+
+docker run --rm \
+  --env-file .env \
+  -v ${PWD}/storage:/actor/storage \
+  weather-forecast-actor
+```
+
+### Debug inside container:
+```bash
+docker run -it --rm \
+  -e OPENWEATHER_API_KEY="your_api_key" \
+  -v ${PWD}/storage:/actor/storage \
+  --entrypoint /bin/bash \
+  weather-forecast-actor
+```
+
+### List images:
+```bash
+docker images
+```
+
+### Remove image:
+```bash
+docker rmi weather-forecast-actor
 ```
 
 ---
@@ -275,6 +449,73 @@ The Actor handles common errors gracefully:
 - **Rate Limit** (429): Advises waiting or upgrading
 - **Network Errors**: Provides connectivity troubleshooting
 - **Invalid Input**: Validates all parameters with helpful messages
+
+---
+
+## 🐛 Troubleshooting
+
+### Docker Issues
+
+**"Docker daemon is not running"**
+```bash
+# Solution: Start Docker Desktop application
+# Check if running:
+docker ps
+```
+
+**"Cannot find the file specified" (Windows)**
+```bash
+# Solution: Ensure Docker Desktop is running
+# Restart Docker Desktop if needed
+```
+
+**Build fails with npm errors**
+```bash
+# Solution: Clean build without cache
+docker build --no-cache -t weather-forecast-actor .
+```
+
+**Container can't find INPUT.json**
+```bash
+# Solution: Ensure the file exists
+ls storage/key_value_stores/default/INPUT.json
+
+# Create the directory structure if missing:
+mkdir -p storage/key_value_stores/default
+```
+
+### Local Run Issues
+
+**"Input is required"**
+```bash
+# Solution: Use npx apify run instead of npm start
+npx apify run
+```
+
+**API Key errors**
+```bash
+# Solution: Wait 10-15 minutes after creating OpenWeatherMap account
+# Check key status at: https://home.openweathermap.org/api_keys
+```
+
+**Module not found**
+```bash
+# Solution: Reinstall dependencies
+rm -rf node_modules package-lock.json
+npm install
+npm run build
+```
+
+### Network Issues
+
+**"Failed to fetch weather data"**
+```bash
+# Test API directly:
+curl "https://api.openweathermap.org/data/2.5/forecast?lat=40.7128&lon=-74.0060&appid=YOUR_KEY&units=metric"
+
+# Check DNS:
+nslookup api.openweathermap.org
+```
 
 ---
 

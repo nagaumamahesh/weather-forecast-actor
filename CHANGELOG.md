@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - Initial release of Weather Forecast GPS Actor
+- **Environment variable support**: API key can be provided via `OPENWEATHER_API_KEY` environment variable
 - GPS-based 7-day weather forecast functionality
 - Support for metric and imperial units
 - OpenWeatherMap API integration

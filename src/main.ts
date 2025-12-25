@@ -31,7 +31,7 @@ interface ActorInput {
     latitude: number;
     longitude: number;
     units?: 'metric' | 'imperial';
-    apiKey: string;
+    apiKey?: string;
 }
 
 /**
@@ -163,22 +163,38 @@ function validateCoordinates(latitude: number, longitude: number): void {
 }
 
 /**
- * Validates Actor input
+ * Validates Actor input and resolves API key from environment if not provided
  * @throws {Error} If input is invalid
  */
 function validateInput(input: ActorInput | null): asserts input is ActorInput {
     if (!input) {
-        throw new Error('Input is required. Please provide latitude, longitude, and apiKey.');
-    }
-
-    if (!input.apiKey || typeof input.apiKey !== 'string' || input.apiKey.trim().length === 0) {
-        throw new Error('API key is required. Get a free key from https://openweathermap.org/api');
+        throw new Error('Input is required. Please provide latitude and longitude.');
     }
 
     validateCoordinates(input.latitude, input.longitude);
 
     if (input.units && !['metric', 'imperial'].includes(input.units)) {
         throw new Error('Units must be either "metric" or "imperial".');
+    }
+
+    // Check if API key is provided in input or environment variable
+    const apiKeyFromEnv = process.env.OPENWEATHER_API_KEY;
+    
+    if (!input.apiKey && !apiKeyFromEnv) {
+        throw new Error(
+            'API key is required. Provide it in input or set OPENWEATHER_API_KEY environment variable. ' +
+            'Get a free key from https://openweathermap.org/api'
+        );
+    }
+
+    // Use environment variable as fallback
+    if (!input.apiKey && apiKeyFromEnv) {
+        input.apiKey = apiKeyFromEnv;
+        log.info('Using API key from OPENWEATHER_API_KEY environment variable');
+    }
+
+    if (input.apiKey && (typeof input.apiKey !== 'string' || input.apiKey.trim().length === 0)) {
+        throw new Error('API key must be a non-empty string.');
     }
 }
 
@@ -390,7 +406,8 @@ Actor.main(async () => {
     const input = await Actor.getInput<ActorInput>();
     validateInput(input);
 
-    const { latitude, longitude, apiKey, units = DEFAULT_UNITS } = input;
+    const { latitude, longitude, units = DEFAULT_UNITS } = input;
+    const apiKey = input.apiKey!; // Non-null assertion safe after validateInput
 
     log.info('Input validated', {
         latitude,
