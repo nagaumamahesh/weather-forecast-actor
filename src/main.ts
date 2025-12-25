@@ -32,6 +32,7 @@ interface ActorInput {
     longitude: number;
     units?: 'metric' | 'imperial';
     apiKey: string;
+    outputFormat?: 'detailed' | 'simple' | 'summary';
 }
 
 /**
@@ -379,6 +380,57 @@ function buildForecastResult(
     };
 }
 
+/**
+ * Formats output for simple/flat structure (ideal for CSV/Excel)
+ */
+function formatSimpleOutput(result: ForecastResult): any[] {
+    return result.daily_forecast.map(day => ({
+        date: day.date,
+        city: result.location.city,
+        country: result.location.country,
+        latitude: result.location.latitude,
+        longitude: result.location.longitude,
+        temp_min: day.temperature.min,
+        temp_max: day.temperature.max,
+        temp_avg: day.temperature.average,
+        temp_unit: day.temperature.unit,
+        feels_like_day: day.feels_like.day,
+        feels_like_night: day.feels_like.night,
+        weather: day.weather.main,
+        description: day.weather.description,
+        humidity: day.humidity,
+        pressure: day.pressure,
+        wind_speed: day.wind.speed,
+        wind_direction: day.wind.direction || null,
+        precipitation_probability: day.precipitation.probability,
+        precipitation_amount: day.precipitation.amount || 0,
+        clouds: day.clouds,
+        visibility: day.visibility || null,
+        retrieved_at: result.retrieved_at
+    }));
+}
+
+/**
+ * Formats output for summary view (concise overview)
+ */
+function formatSummaryOutput(result: ForecastResult): any {
+    return {
+        location: `${result.location.city}, ${result.location.country}`,
+        coordinates: `${result.location.latitude}, ${result.location.longitude}`,
+        units: result.units,
+        forecast_period: result.forecast_period,
+        retrieved_at: result.retrieved_at,
+        forecast: result.daily_forecast.map(day => ({
+            date: day.date,
+            temperature: `${day.temperature.min} to ${day.temperature.max}${day.temperature.unit}`,
+            weather: `${day.weather.main} - ${day.weather.description}`,
+            precipitation: `${day.precipitation.probability}%`,
+            wind: `${day.wind.speed} ${result.units === 'metric' ? 'm/s' : 'mph'}`,
+            humidity: `${day.humidity}%`
+        }))
+    };
+}
+
 // ============================================================================
 // Main Actor Logic
 // ============================================================================
@@ -390,12 +442,13 @@ Actor.main(async () => {
     const input = await Actor.getInput<ActorInput>();
     validateInput(input);
 
-    const { latitude, longitude, apiKey, units = DEFAULT_UNITS } = input;
+    const { latitude, longitude, apiKey, units = DEFAULT_UNITS, outputFormat = 'detailed' } = input;
 
     log.info('Input validated', {
         latitude,
         longitude,
         units,
+        outputFormat,
         apiKeyProvided: true
     });
 
@@ -410,14 +463,40 @@ Actor.main(async () => {
         // Build result
         const result = buildForecastResult(weatherData, dailyForecasts, input);
 
+        // Format output based on user preference
+        let outputData: any;
+        switch (outputFormat) {
+            case 'simple':
+                outputData = formatSimpleOutput(result);
+                log.info('Output formatted as simple (flat structure for CSV/Excel)');
+                break;
+            case 'summary':
+                outputData = formatSummaryOutput(result);
+                log.info('Output formatted as summary (concise overview)');
+                break;
+            case 'detailed':
+            default:
+                outputData = result;
+                log.info('Output formatted as detailed (full nested structure)');
+                break;
+        }
+
         // Save to dataset
-        await Actor.pushData(result);
+        if (Array.isArray(outputData)) {
+            // For simple format, push each day as separate item for better CSV/Excel support
+            for (const item of outputData) {
+                await Actor.pushData(item);
+            }
+        } else {
+            await Actor.pushData(outputData);
+        }
 
         // Log success
         log.info('Weather forecast retrieved successfully', {
             location: `${result.location.city}, ${result.location.country}`,
             forecastDays: dailyForecasts.length,
-            dataPoints: weatherData.cnt
+            dataPoints: weatherData.cnt,
+            outputFormat
         });
 
         log.info(`✅ Success! Retrieved ${dailyForecasts.length}-day forecast for ${result.location.city}`);

@@ -38,6 +38,15 @@
       "description": "Your OpenWeatherMap API key. Get a FREE key at https://openweathermap.org/api (allows 1M calls/month). New keys may take 10-15 minutes to activate.",
       "editor": "textfield",
       "isSecret": true
+    },
+    "outputFormat": {
+      "title": "Output Format",
+      "type": "string",
+      "description": "Choose how you want the weather data formatted. 'detailed' includes all fields, 'simple' is flat structure for CSV/Excel, 'summary' is concise overview.",
+      "enum": ["detailed", "simple", "summary"],
+      "default": "detailed",
+      "editor": "select",
+      "enumTitles": ["Detailed (full nested structure)", "Simple (flat structure for CSV/Excel)", "Summary (concise overview)"]
     }
   },
   "required": ["latitude", "longitude", "apiKey"]
