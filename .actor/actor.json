@@ -1,0 +1,55 @@
+{
+  "actorSpecification": 1,
+  "name": "weather-forecast-actor",
+  "title": "Weather Forecast by GPS Coordinates",
+  "description": "Get accurate 7-day weather forecasts for any location worldwide using GPS coordinates. Supports metric and imperial units. Perfect for travel planning, event scheduling, and AI agents. Built with TypeScript for the Apify $1M Challenge.",
+  "version": "1.0.0",
+  "meta": {
+    "templateId": "js-start"
+  },
+  "input": "./input_schema.json",
+  "dockerfile": "./Dockerfile",
+  "readme": "./README.md",
+  "categories": [
+    "TRAVEL",
+    "AUTOMATION",
+    "INTEGRATIONS"
+  ],
+  "storages": {
+    "dataset": {
+      "actorSpecification": 1,
+      "views": {
+        "overview": {
+          "title": "Weather Forecast Overview",
+          "transformation": {
+            "fields": [
+              "location.city",
+              "location.country",
+              "forecast_period",
+              "retrieved_at",
+              "daily_forecast"
+            ]
+          },
+          "display": {
+            "component": "table",
+            "properties": {
+              "location.city": {
+                "label": "City"
+              },
+              "location.country": {
+                "label": "Country"
+              },
+              "forecast_period": {
+                "label": "Period"
+              },
+              "retrieved_at": {
+                "label": "Retrieved At",
+                "format": "date"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

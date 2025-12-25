@@ -1,0 +1,44 @@
+{
+  "title": "Weather Forecast Actor Input",
+  "type": "object",
+  "schemaVersion": 1,
+  "properties": {
+    "latitude": {
+      "title": "Latitude",
+      "type": "number",
+      "description": "GPS latitude coordinate. Must be between -90 (South Pole) and 90 (North Pole). Example: New York = 40.7128",
+      "minimum": -90,
+      "maximum": 90,
+      "example": 40.7128,
+      "editor": "number",
+      "prefill": 40.7128
+    },
+    "longitude": {
+      "title": "Longitude",
+      "type": "number",
+      "description": "GPS longitude coordinate. Must be between -180 and 180. Example: New York = -74.0060",
+      "minimum": -180,
+      "maximum": 180,
+      "example": -74.0060,
+      "editor": "number",
+      "prefill": -74.0060
+    },
+    "units": {
+      "title": "Temperature Units",
+      "type": "string",
+      "description": "Choose temperature unit system. Metric uses Celsius, imperial uses Fahrenheit.",
+      "enum": ["metric", "imperial"],
+      "default": "metric",
+      "editor": "select",
+      "enumTitles": ["Metric (°C, m/s, mm)", "Imperial (°F, mph, in)"]
+    },
+    "apiKey": {
+      "title": "OpenWeatherMap API Key",
+      "type": "string",
+      "description": "Your OpenWeatherMap API key. Get a FREE key at https://openweathermap.org/api (allows 1M calls/month). New keys may take 10-15 minutes to activate.",
+      "editor": "textfield",
+      "isSecret": true
+    }
+  },
+  "required": ["latitude", "longitude", "apiKey"]
+}
