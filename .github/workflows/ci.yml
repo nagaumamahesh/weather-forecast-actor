@@ -68,13 +68,19 @@ jobs:
           context: .
           push: false
           tags: weather-forecast-actor:test
+          load: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
       
       - name: Test Docker image
         run: |
-          docker images | grep weather-forecast-actor
-          echo "✅ Docker image built successfully"
+          docker images
+          if docker images | grep -q weather-forecast-actor; then
+            echo "✅ Docker image built successfully"
+          else
+            echo "❌ Docker image not found"
+            exit 1
+          fi
 
   code-quality:
     name: Code Quality Checks
